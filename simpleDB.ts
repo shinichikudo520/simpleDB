@@ -8,23 +8,23 @@ export function openSimpleDB(
 
     req.onupgradeneeded = () => {
       const db = req.result;
-      console.log('openRequest.onupgradeneeded', db.name, db.version);
+      console.log("openRequest.onupgradeneeded", db.name, db.version);
       onUpgrade(db);
     };
 
     req.onsuccess = () => {
       const db = req.result;
-      console.log('openRequest.onsuccess', db.name);
+      console.log("openRequest.onsuccess", db.name);
       resolve(new SimpleDB(db));
     };
 
     req.onerror = () => {
-      console.error('openRequest.onerror', req.error);
+      console.error("openRequest.onerror", req.error);
       reject(req.error);
     };
 
     req.onblocked = (e) => {
-      console.error('openRequest.onblocked', e);
+      console.error("openRequest.onblocked", e);
       reject(e);
     };
   });
@@ -39,7 +39,7 @@ class SimpleDB {
 
   transaction(
     stores: SimpleStore | SimpleStore[],
-    mode: IDBTransactionMode = 'readwrite'
+    mode: IDBTransactionMode = "readwrite"
   ) {
     if (Array.isArray(stores)) {
       return this.db.transaction(
@@ -56,22 +56,22 @@ class SimpleDB {
       const req = indexedDB.deleteDatabase(this.db.name);
 
       req.onupgradeneeded = (e) => {
-        console.log('Database deleted onupgradeneeded...', this.db.name, e);
+        console.log("Database deleted onupgradeneeded...", this.db.name, e);
         reject(e);
       };
 
       req.onsuccess = (e) => {
-        console.log('Database deleted successfully...', this.db.name, e);
+        console.log("Database deleted successfully...", this.db.name, e);
         resolve(true);
       };
 
       req.onerror = (e) => {
-        console.error('Database deleted failed...', this.db.name, e);
+        console.error("Database deleted failed...", this.db.name, e);
         reject(e);
       };
 
       req.onblocked = (e) => {
-        console.error('Database deleted onblocked...', this.db.name, e);
+        console.error("Database deleted onblocked...", this.db.name, e);
         reject(e);
       };
     });
@@ -111,6 +111,35 @@ abstract class AbstractSimpleStore<T extends IDBObjectStore | IDBIndex> {
       const req = store.getAll(query, count);
       handlRequest(req, resolve, reject);
     });
+  }
+  /**
+   * 匹配指定范围的数据(数组)
+   * @param lower 获取范围的下限
+   * @param upper 获取范围的上限
+   * @param lowerOpen 是否不包括下限, 下限开区间
+   * @param upperOpen 是否不包括上限, 上限开区间
+   * @returns 符合的数据(数组)
+   */
+  getAllBound(lower: any, upper: any, lowerOpen: boolean, upperOpen: boolean) {
+    return this.getAll(IDBKeyRange.bound(lower, upper, lowerOpen, upperOpen));
+  }
+  /**
+   * 匹配指定下限的数据(数组)
+   * @param lower 获取范围的下限
+   * @param lowerOpen 是否不包括下限, 下限开区间
+   * @returns 符合的数据(数组)
+   */
+  getAllLB(lower: any, lowerOpen: boolean) {
+    return this.getAll(IDBKeyRange.lowerBound(lower, lowerOpen));
+  }
+  /**
+   * 匹配指定上限的数据(数组)
+   * @param upper 获取范围的上限
+   * @param upperOpen 是否不包括上限, 上限开区间
+   * @returns 符合的数据(数组)
+   */
+  getAllUB(upper: any, upperOpen: boolean) {
+    return this.getAll(IDBKeyRange.upperBound(upper, upperOpen));
   }
   /**
    * 获取指定范围的主键（数组）
@@ -267,7 +296,7 @@ class SimpleStore extends AbstractSimpleStore<IDBObjectStore> {
   ) {
     return new Promise<T>((resolve, reject) => {
       try {
-        tx = tx || this.db.transaction(this.name, 'readwrite');
+        tx = tx || this.db.transaction(this.name, "readwrite");
         const store = tx.objectStore(this.name);
         cb(store, resolve, reject);
       } catch (ex) {
@@ -302,7 +331,7 @@ class SimpleStore extends AbstractSimpleStore<IDBObjectStore> {
       };
 
       req.onerror = () => {
-        reject(new Error('Failed to clear data!'));
+        reject(new Error("Failed to clear data!"));
       };
     });
   }
@@ -323,7 +352,7 @@ class SimpleIndex extends AbstractSimpleStore<IDBIndex> {
   ): Promise<T> {
     return new Promise<T>((resolve, reject) => {
       try {
-        tx = tx || this.db.transaction(this.name, 'readwrite');
+        tx = tx || this.db.transaction(this.name, "readwrite");
         const store = tx.objectStore(this.name);
         const index = store.index(this.index);
         cb(index, resolve, reject);
