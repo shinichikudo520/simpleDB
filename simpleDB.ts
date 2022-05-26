@@ -305,8 +305,8 @@ class SimpleStore extends AbstractSimpleStore<IDBObjectStore> {
     });
   }
 
-  getIndex(index: string) {
-    return new SimpleIndex(this.name, index, this.db);
+  getIndex(index: string, keys?: string[]) {
+    return new SimpleIndex(this.name, index, this.db, keys);
   }
 
   put(key: IDBValidKey, value: any, tx?: IDBTransaction) {
@@ -341,7 +341,8 @@ class SimpleIndex extends AbstractSimpleStore<IDBIndex> {
   constructor(
     readonly name: string,
     readonly index: string,
-    private readonly db: IDBDatabase
+    private readonly db: IDBDatabase,
+    readonly keys?: string[]
   ) {
     super();
   }
