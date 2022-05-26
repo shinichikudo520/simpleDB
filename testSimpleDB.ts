@@ -41,6 +41,8 @@ export default async function testSimpleDB() {
       const store = db.createObjectStore("asdf");
       store.createIndex("by_id", "id", { unique: true });
       store.createIndex("by_name", "name");
+      // 生成复合索引
+      store.createIndex("id_name", ["id", "name"]);
     });
     console.log("IDBDatabase1...", sdb);
   } catch (error) {
@@ -53,9 +55,12 @@ export default async function testSimpleDB() {
   const asdf = sdb.store("asdf");
   const idxId = asdf.getIndex("by_id");
   const idxName = asdf.getIndex("by_name");
+  // 复合索引
+  const idxs = asdf.getIndex("id_name");
 
   await asdf.put("1234", { id: "12341234", name: "asdf", date: new Date() });
   await asdf.put("1234", { id: "12345555", name: "asdf", date: new Date() });
+  console.log(idxs.get(["12345555", "asdf"]));
   try {
     await asdf.put("4321", { id: "12341234", name: "asdf", date: new Date() });
   } catch (error) {
