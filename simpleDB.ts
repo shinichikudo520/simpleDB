@@ -118,28 +118,55 @@ abstract class AbstractSimpleStore<T extends IDBObjectStore | IDBIndex> {
    * @param upper 获取范围的上限
    * @param lowerOpen 是否不包括下限, 下限开区间
    * @param upperOpen 是否不包括上限, 上限开区间
+   * @param count 指定个数
+   * @param tx 事务
    * @returns 符合的数据(数组)
    */
-  getAllBound(lower: any, upper: any, lowerOpen: boolean, upperOpen: boolean) {
-    return this.getAll(IDBKeyRange.bound(lower, upper, lowerOpen, upperOpen));
+  getAllBound(
+    lower: any,
+    upper: any,
+    lowerOpen: boolean,
+    upperOpen: boolean,
+    count?: number,
+    tx?: IDBTransaction
+  ) {
+    return this.getAll(
+      IDBKeyRange.bound(lower, upper, lowerOpen, upperOpen),
+      count,
+      tx
+    );
   }
   /**
    * 匹配指定下限的数据(数组)
    * @param lower 获取范围的下限
    * @param lowerOpen 是否不包括下限, 下限开区间
+   * @param count 指定个数
+   * @param tx 事务
    * @returns 符合的数据(数组)
    */
-  getAllLB(lower: any, lowerOpen: boolean) {
-    return this.getAll(IDBKeyRange.lowerBound(lower, lowerOpen));
+  getAllLB(
+    lower: any,
+    lowerOpen: boolean,
+    count?: number,
+    tx?: IDBTransaction
+  ) {
+    return this.getAll(IDBKeyRange.lowerBound(lower, lowerOpen), count, tx);
   }
   /**
    * 匹配指定上限的数据(数组)
    * @param upper 获取范围的上限
    * @param upperOpen 是否不包括上限, 上限开区间
+   * @param count 指定个数
+   * @param tx 事务
    * @returns 符合的数据(数组)
    */
-  getAllUB(upper: any, upperOpen: boolean) {
-    return this.getAll(IDBKeyRange.upperBound(upper, upperOpen));
+  getAllUB(
+    upper: any,
+    upperOpen: boolean,
+    count?: number,
+    tx?: IDBTransaction
+  ) {
+    return this.getAll(IDBKeyRange.upperBound(upper, upperOpen), count, tx);
   }
   /**
    * 获取指定范围的主键（数组）
@@ -159,6 +186,62 @@ abstract class AbstractSimpleStore<T extends IDBObjectStore | IDBIndex> {
     });
   }
   /**
+   * 匹配指定范围的数据(数组)
+   * @param lower 获取范围的下限
+   * @param upper 获取范围的上限
+   * @param lowerOpen 是否不包括下限, 下限开区间
+   * @param upperOpen 是否不包括上限, 上限开区间
+   * @param count 指定个数
+   * @param tx 事务
+   * @returns 符合的数据(数组)
+   */
+  getAllKeysBound(
+    lower: any,
+    upper: any,
+    lowerOpen: boolean,
+    upperOpen: boolean,
+    count?: number,
+    tx?: IDBTransaction
+  ) {
+    return this.getAllKeys(
+      IDBKeyRange.bound(lower, upper, lowerOpen, upperOpen),
+      count,
+      tx
+    );
+  }
+  /**
+   * 匹配指定下限的数据(数组)
+   * @param lower 获取范围的下限
+   * @param lowerOpen 是否不包括下限, 下限开区间
+   * @param count 指定个数
+   * @param tx 事务
+   * @returns 符合的数据(数组)
+   */
+  getAllKeysLB(
+    lower: any,
+    lowerOpen: boolean,
+    count?: number,
+    tx?: IDBTransaction
+  ) {
+    return this.getAllKeys(IDBKeyRange.lowerBound(lower, lowerOpen), count, tx);
+  }
+  /**
+   * 匹配指定上限的数据(数组)
+   * @param upper 获取范围的上限
+   * @param upperOpen 是否不包括上限, 上限开区间
+   * @param count 指定个数
+   * @param tx 事务
+   * @returns 符合的数据(数组)
+   */
+  getAllKeysUB(
+    upper: any,
+    upperOpen: boolean,
+    count?: number,
+    tx?: IDBTransaction
+  ) {
+    return this.getAllKeys(IDBKeyRange.upperBound(upper, upperOpen), count, tx);
+  }
+  /**
    * 获取指定范围的主键值
    * @param query 键（主键/索引）的值或者范围，如果是 IDBObjectStore 调用则是指定主键的值或者范围，如果是 IDBIndex 调用则是指定索引的值或者范围
    * @param tx 事务
@@ -170,7 +253,47 @@ abstract class AbstractSimpleStore<T extends IDBObjectStore | IDBIndex> {
       handlRequest(req, resolve, reject);
     });
   }
-
+  /**
+   * 匹配指定范围的数据
+   * @param lower 获取范围的下限
+   * @param upper 获取范围的上限
+   * @param lowerOpen 是否不包括下限, 下限开区间
+   * @param upperOpen 是否不包括上限, 上限开区间
+   * @param tx 事务
+   * @returns 符合的数据, 返回一个
+   */
+  getKeyBound(
+    lower: any,
+    upper: any,
+    lowerOpen: boolean,
+    upperOpen: boolean,
+    tx?: IDBTransaction
+  ) {
+    return this.getKey(
+      IDBKeyRange.bound(lower, upper, lowerOpen, upperOpen),
+      tx
+    );
+  }
+  /**
+   * 匹配指定下限的数据
+   * @param lower 获取范围的下限
+   * @param lowerOpen 是否不包括下限, 下限开区间
+   * @param tx 事务
+   * @returns 符合的数据, 返回一个
+   */
+  getKeyLB(lower: any, lowerOpen: boolean, tx?: IDBTransaction) {
+    return this.getKey(IDBKeyRange.lowerBound(lower, lowerOpen), tx);
+  }
+  /**
+   * 匹配指定上限的数据
+   * @param upper 获取范围的上限
+   * @param upperOpen 是否不包括上限, 上限开区间
+   * @param tx 事务
+   * @returns 符合的数据, 返回一个
+   */
+  getKeyUB(upper: any, upperOpen: boolean, tx?: IDBTransaction) {
+    return this.getKey(IDBKeyRange.upperBound(upper, upperOpen), tx);
+  }
   /**
    * 遍历所有数据
    * @param cb 针对每一条数据的回调处理函数
