@@ -45,7 +45,7 @@ function saveData(storeName, data) {
     //访问事务中的objectStore
     var store = transaction.objectStore(storeName);
     //data为对象
-    var addRequest = store.add(data);
+    var addRequest = store.put(data);
     addRequest.onsuccess = function(event) {
         console.log("save data done...", store);
     };
