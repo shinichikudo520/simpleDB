@@ -75,15 +75,40 @@ function getEarliest(storeName, query) {
         //访问事务中的objectStore
         var store = transaction.objectStore(storeName);
         const index = store.index("id_time");
-        /**
-                            next：游标中的数据按主键值升序排列，主键值相等(相同值)的数据都被读取
+        // next：游标中的数据按主键值升序排列，主键值相等(相同值)的数据都被读取
 
-                            nextunique：游标中的数据按主键值升序排列，主键值相等(相同值)只读取第一条数据
+        // nextunique：游标中的数据按主键值升序排列，主键值相等(相同值)只读取第一条数据
 
-                            prev：游标中的数据按主键值降序排列，主键值相等(相同值)的数据都被读取
+        // prev：游标中的数据按主键值降序排列，主键值相等(相同值)的数据都被读取
 
-                            prevunique：游标中的数据按主键值降序排列，主键值相等(相同值)只读取第一条数据
-                        */
+        // prevunique：游标中的数据按主键值降序排列，主键值相等(相同值)只读取第一条数据
+        const req = index.openKeyCursor(query, "nextunique"); // 键按降序排列, 所以最后一条是最早的数据
+        req.onsuccess = function(event) {
+            const cursor = req.result;
+            const result = cursor ? cursor.primaryKey : null;
+            resolve(result);
+        };
+
+        req.onerror = function(event) {
+            resolve(null);
+        };
+    });
+}
+
+function getEarliest1(storeName, query) {
+    return new Promise((resolve) => {
+        //创建事务
+        var transaction = db.transaction([storeName], "readwrite");
+        //访问事务中的objectStore
+        var store = transaction.objectStore(storeName);
+        const index = store.index("id_time");
+        // next：游标中的数据按主键值升序排列，主键值相等(相同值)的数据都被读取
+
+        // nextunique：游标中的数据按主键值升序排列，主键值相等(相同值)只读取第一条数据
+
+        // prev：游标中的数据按主键值降序排列，主键值相等(相同值)的数据都被读取
+
+        // prevunique：游标中的数据按主键值降序排列，主键值相等(相同值)只读取第一条数据
         const req = index.openKeyCursor(query, "prevunique"); // 键按降序排列, 所以最后一条是最早的数据
         let result;
         req.onsuccess = function(event) {
@@ -109,15 +134,40 @@ function getLastest(storeName, query) {
         //访问事务中的objectStore
         var store = transaction.objectStore(storeName);
         const index = store.index("id_time");
-        /**
-                            next：游标中的数据按主键值升序排列，主键值相等(相同值)的数据都被读取
+        // next：游标中的数据按主键值升序排列，主键值相等(相同值)的数据都被读取
 
-                            nextunique：游标中的数据按主键值升序排列，主键值相等(相同值)只读取第一条数据
+        // nextunique：游标中的数据按主键值升序排列，主键值相等(相同值)只读取第一条数据
 
-                            prev：游标中的数据按主键值降序排列，主键值相等(相同值)的数据都被读取
+        // prev：游标中的数据按主键值降序排列，主键值相等(相同值)的数据都被读取
 
-                            prevunique：游标中的数据按主键值降序排列，主键值相等(相同值)只读取第一条数据
-                        */
+        // prevunique：游标中的数据按主键值降序排列，主键值相等(相同值)只读取第一条数据
+        const req = index.openKeyCursor(query, "prevunique"); // 键按降序排列, 所以第一条是最晚的数据
+        req.onsuccess = function(event) {
+            const cursor = req.result;
+            const result = cursor ? cursor.primaryKey : null;
+            resolve(result);
+        };
+
+        req.onerror = function(event) {
+            resolve(null);
+        };
+    });
+}
+
+function getLastest1(storeName, query) {
+    return new Promise((resolve) => {
+        //创建事务
+        var transaction = db.transaction([storeName], "readwrite");
+        //访问事务中的objectStore
+        var store = transaction.objectStore(storeName);
+        const index = store.index("id_time");
+        // next：游标中的数据按主键值升序排列，主键值相等(相同值)的数据都被读取
+
+        // nextunique：游标中的数据按主键值升序排列，主键值相等(相同值)只读取第一条数据
+
+        // prev：游标中的数据按主键值降序排列，主键值相等(相同值)的数据都被读取
+
+        // prevunique：游标中的数据按主键值降序排列，主键值相等(相同值)只读取第一条数据
         const req = index.openKeyCursor(query, "nextunique"); // 键按升序排列, 所以最后一条是最晚的数据
         let result;
         req.onsuccess = function(event) {
@@ -135,7 +185,6 @@ function getLastest(storeName, query) {
         };
     });
 }
-
 document.getElementById("add").onclick = function() {
     getList("students").then(async(list) => {
         console.log("数据...", list);
