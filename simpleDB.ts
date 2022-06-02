@@ -30,7 +30,7 @@ export function openSimpleDB(
   });
 }
 
-class SimpleDB {
+export class SimpleDB {
   constructor(private readonly db: IDBDatabase) {}
 
   store(name: string) {
