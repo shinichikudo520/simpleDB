@@ -1,4 +1,4 @@
-import { openSimpleDB, SimpleDB } from "./simpleDB";
+import { openSimpleDB, SimpleDB } from "./simpleDB.v1";
 
 let DB: SimpleDB;
 const version = 1;

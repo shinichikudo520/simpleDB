@@ -1,4 +1,4 @@
-import { openSimpleDB } from "./SimpleDB";
+import { openSimpleDB } from "./simpleDB.v1";
 import { sleep } from "./sleep";
 
 export default async function testSimpleDB() {
@@ -80,7 +80,7 @@ export default async function testSimpleDB() {
 
   // Promise.all 的性能优于 await 每一步操作完成
   console.time("promise.all");
-  const tasks = [];
+  const tasks:any[] = [];
   for (let i = 0; i < 100; i++) {
     tasks.push(asdf.put("8765", "aasdfasdf", tx));
   }
