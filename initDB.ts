@@ -19,7 +19,7 @@ function initDB() {
     // 切换 DB 时, 先关闭上一个 DB 的连接, 不能一直连接耗费资源, 且一直处于连接状态无法删除
     if (DB) {
       DB.close();
-      DB = null;
+      DB = null as any;
     }
 
     openSimpleDB("testDB", version, (db: IDBDatabase) => {
@@ -41,7 +41,10 @@ function initDB() {
 function clearStore(db: IDBDatabase) {
   const names = new Array<string>();
   for (let i = 0; i < db.objectStoreNames.length; i++) {
-    names.push(db.objectStoreNames.item(i));
+    const store = db.objectStoreNames.item(i);
+    if (typeof store === "string") {
+      names.push(store);
+    }
   }
   names.forEach((name) => db.deleteObjectStore(name));
 }
