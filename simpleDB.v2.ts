@@ -50,6 +50,13 @@ export class SimpleDB {
     } else {
       tx = this.db.transaction(stores.name, mode);
     }
+
+    tx.onabort = (e) => {
+      console.error(e);
+    };
+    tx.onerror = (e) => {
+      console.error(e);
+    };
     return tx;
   }
 
@@ -452,7 +459,7 @@ export class SimpleStore extends AbstractSimpleStore<IDBObjectStore> {
 
   delete(key: IDBValidKey | IDBKeyRange, tx?: IDBTransaction) {
     return this.exec<any>(tx, (store, resolve, reject) => {
-        if (!key) return reject();
+      if (!key) return reject();
       const req = store.delete(key);
       handlRequest(req, resolve, reject);
     });
