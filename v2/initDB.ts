@@ -1,4 +1,4 @@
-import { openSimpleDB, SimpleDB, SimpleIndex, SimpleStore } from "./simpleDB.v2";
+import { openSimpleDB, SimpleDB, SimpleIndex, SimpleStore } from "./common/simpleDB";
 
 let DB: SimpleDB;
 const version = 2;
@@ -10,6 +10,7 @@ function initDB() {
       DB.close();
       DB = null as any;
     }
+
 
     openSimpleDB("testDB", version, (db: IDBDatabase) => {
       clearStore(db); // 清除 store
@@ -80,6 +81,7 @@ function mainDB(db: SimpleDB) {
   const aaa = db.store("aaa");
   const bbb = db.store("bbb");
   const ccc = db.store("ccc");
+  const ddd = db.store("ddd");
 
   return {
     db,

@@ -31,14 +31,14 @@ export function openSimpleDB(
 }
 
 export class SimpleDB {
-  constructor(private readonly db: IDBDatabase) {}
+  constructor(private readonly db: IDBDatabase) { }
 
-  store(name: string) {
-    return new SimpleStore(name, this);
+  store(name: string, options?: IDBObjectStoreParameters) {
+    return new SimpleStore(name, this, options);
   }
 
   transaction(
-    stores: SimpleStore | SimpleIndex | (SimpleStore | SimpleStore)[],
+    stores: SimpleStore | SimpleIndex | (SimpleStore | SimpleIndex)[],
     mode: IDBTransactionMode = "readwrite"
   ) {
     let tx: IDBTransaction;
@@ -93,8 +93,8 @@ export class SimpleDB {
     return this.db.close();
   }
 
-  createObjectStore(name: string) {
-    return this.db.createObjectStore(name);
+  createObjectStore(name: string, options?: IDBObjectStoreParameters) {
+    return this.db.createObjectStore(name, options);
   }
 }
 
@@ -312,6 +312,15 @@ abstract class AbstractSimpleStore<T extends IDBObjectStore | IDBIndex> {
     return this.getKey(IDBKeyRange.upperBound(upper, upperOpen), tx);
   }
   /**
+   * 匹配唯一的索引值的数据的主键
+   * @param index 索引的值
+   * @param tx 事务
+   * @returns 符合的键, 返回一个
+   */
+  getKeyOnly(index: any, tx?: IDBTransaction) {
+    return this.getKey(IDBKeyRange.only(index), tx);
+  }
+  /**
    * 遍历所有数据
    * @param cb 针对每一条数据的回调处理函数
    *        @param key 键的值，如果是 IDBObjectStore 调用则是主键的值，如果是 IDBIndex 调用则是索引的值
@@ -426,7 +435,7 @@ abstract class AbstractSimpleStore<T extends IDBObjectStore | IDBIndex> {
 }
 
 export class SimpleStore extends AbstractSimpleStore<IDBObjectStore> {
-  constructor(readonly name: string, private readonly sdb: SimpleDB) {
+  constructor(readonly name: string, private readonly sdb: SimpleDB, private readonly options?: IDBObjectStoreParameters) {
     super();
   }
 
@@ -479,7 +488,7 @@ export class SimpleStore extends AbstractSimpleStore<IDBObjectStore> {
   }
 
   init() {
-    return this.sdb.createObjectStore(this.name);
+    return this.sdb.createObjectStore(this.name, this.options);
   }
 }
 

@@ -1,5 +1,5 @@
 import { openSimpleDB } from "./simpleDB.v1";
-import { sleep } from "./sleep";
+import { sleep } from "../sleep";
 
 export default async function testSimpleDB() {
   console.log("test...", "testSimpleDB...");
