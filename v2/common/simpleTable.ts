@@ -5,7 +5,7 @@ import { SimpleDB, SimpleIndex, SimpleStore } from "./simpleDB";
 import { KEY_TYPE, callback, KEY_PROP_NAME, update } from "./type";
 import { forEach, forEachA } from "./util";
 
-export class Table {
+export class SimpleTable {
   protected readonly db: SimpleDB;
   protected readonly store: SimpleStore;
   private readonly key: KEY_PROP_NAME;
