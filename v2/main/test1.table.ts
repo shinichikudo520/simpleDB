@@ -3,18 +3,13 @@ import { SimpleDB } from "../common/simpleDB";
 import { SimpleTable } from "../common/simpleTable";
 import TestDB from "./initDB.v2";
 
-export default class TestTable extends SimpleTable {
+export default class TestTable1 extends SimpleTable {
   constructor(db: SimpleDB, private readonly testDB: TestDB) {
-    const store = db.store("test");
-    const primaryKey = store.getIndex("uuid");
-    const indexs = {
-      title: store.getIndex("title"),
-      source_version: store.getIndex("source_version", ["source", "version"]),
-    };
-    const cachename = "testMemory";
-    const buffername = "testBuffer";
+    /** 表格主键自增长 */
+    const store = db.store("test1", { keyPath: "id", autoIncrement: true });
+    const primaryKey = store.getIndex("id");
 
-    super(db, store, primaryKey, "uuid", indexs, cachename, buffername);
+    super(db, store, primaryKey, undefined, undefined, undefined, undefined);
   }
   private verifyKey(key: string) {
     Check.mustString(key);

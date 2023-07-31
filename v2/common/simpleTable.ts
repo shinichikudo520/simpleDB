@@ -8,7 +8,7 @@ import { forEach, forEachA } from "./util";
 export class SimpleTable {
   protected readonly db: SimpleDB;
   protected readonly store: SimpleStore;
-  private readonly key: KEY_PROP_NAME;
+  protected readonly key: KEY_PROP_NAME;
   protected readonly primaryKey: SimpleIndex;
   protected readonly indexs: { [indexName: string]: SimpleIndex };
   /** 内存中存储一份数据, 结构与 indexedDB 完全一致 */
@@ -19,11 +19,11 @@ export class SimpleTable {
   constructor(
     db: SimpleDB,
     store: SimpleStore,
-    key: KEY_PROP_NAME,
     primaryKey: SimpleIndex,
-    indexs: { [indexName: string]: SimpleIndex },
-    cachename: string,
-    buffername: string
+    key: KEY_PROP_NAME = "" as any,
+    indexs: { [indexName: string]: SimpleIndex } = {},
+    cachename?: string,
+    buffername?: string
   ) {
     this.db = db;
     this.store = store;
