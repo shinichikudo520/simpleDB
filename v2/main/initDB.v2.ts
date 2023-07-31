@@ -66,4 +66,11 @@ export default class TestDB {
   }
 }
 
+// --------------------- TEST
 const DB = new TestDB("test");
+DB.tables.test.setData({
+  uuid: "1",
+  title: "aaa",
+  source: "bbbb",
+  version: "cccc",
+});

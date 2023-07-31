@@ -2,6 +2,7 @@ import Check from "../common/check";
 import { SimpleDB } from "../common/simpleDB";
 import { SimpleTable } from "../common/simpleTable";
 import TestDB from "./initDB.v2";
+import { TEST1 } from "./type";
 
 export default class TestTable1 extends SimpleTable {
   constructor(db: SimpleDB, private readonly testDB: TestDB) {
@@ -14,20 +15,20 @@ export default class TestTable1 extends SimpleTable {
   private verifyKey(key: string) {
     Check.mustString(key);
   }
-  async setData(data: any) {
-    return this.add<any>(data[this.key], data);
+  async setData(data: TEST1) {
+    return this.add<TEST1>(data[this.key], data);
   }
   async delData(key: string) {
     this.verifyKey(key);
 
-    return this.del<any>(key);
+    return this.del<TEST1>(key);
   }
   async getData(key: string) {
     this.verifyKey(key);
 
-    return this.get<any>(key);
+    return this.get<TEST1 & { id: string }>(key);
   }
   async getAllArrData() {
-    return this.getAllArr<any>();
+    return this.getAllArr<TEST1 & { id: string }>();
   }
 }
