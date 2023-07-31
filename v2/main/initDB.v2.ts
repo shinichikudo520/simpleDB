@@ -74,3 +74,4 @@ DB.tables.test.setData({
   source: "bbbb",
   version: "cccc",
 });
+// 注意事项: 数据记得深拷贝
