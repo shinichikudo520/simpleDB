@@ -1,14 +1,13 @@
-const LOCAL_KV_ROOT = "__LOCAL_KV_ROOT__";
+export class LocalKV<T> {
+  private readonly rootspace: string;
+  private readonly namespace: string;
+  private cache: { [key: string]: T };
 
-export class LocalKV {
-  readonly namespace: string;
-  readonly cache: { [key: string]: any };
-
-  constructor(namespace: string) {
-    let root = self[LOCAL_KV_ROOT];
+  constructor(rootspace: string, namespace: string) {
+    let root = self[rootspace];
     if (!root) {
       root = {};
-      self[LOCAL_KV_ROOT] = root;
+      self[rootspace] = root;
     }
 
     let cache = root[namespace];
@@ -17,21 +16,43 @@ export class LocalKV {
       root[namespace] = cache;
     }
 
+    this.rootspace = rootspace;
     this.namespace = namespace;
     this.cache = cache;
   }
 
-  set(key: string, value: any) {
+  set(key: string, value: T) {
+    if (!key || !value) {
+      throw new Error(`Illegal data! key: ${key}, value: ${value}`);
+    }
+
     const oldValue = this.cache[key];
     this.cache[key] = value;
     return oldValue;
   }
 
-  get(key: string) {
+  get(key: string): T {
     return this.cache[key];
   }
 
-  getAllData() {
+  keys(): Array<string> {
+    const keys: Array<string> = [];
+    for (const k in this.cache) {
+      keys.push(k);
+    }
+    return keys;
+  }
+
+  values(): Array<T> {
+    const values: Array<T> = [];
+    for (const k in this.cache) {
+      const v = this.cache[k];
+      values.push(v);
+    }
+    return values;
+  }
+
+  getAllData(): { [key: string]: T } {
     return this.cache;
   }
 
@@ -40,7 +61,15 @@ export class LocalKV {
   }
 
   clear() {
-    let root = self[LOCAL_KV_ROOT];
+    const root = self[this.rootspace];
+    if (root.hasOwnProperty(this.namespace)) {
+      this.cache = {};
+      root[this.namespace] = this.cache;
+    }
+  }
+
+  destory() {
+    let root = self[this.rootspace];
     if (root.hasOwnProperty(this.namespace)) {
       delete root[this.namespace];
     }

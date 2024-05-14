@@ -4,7 +4,7 @@ import { SimpleTable } from "../common/simpleTable";
 import TestDB from "./initDB.v2";
 import { TEST1 } from "./type";
 
-export default class TestTable1 extends SimpleTable {
+export default class TestTable1 extends SimpleTable<TEST1> {
   constructor(db: SimpleDB, private readonly testDB: TestDB) {
     /** 表格主键自增长 */
     const store = db.store("test1", { keyPath: "id", autoIncrement: true });
@@ -16,19 +16,19 @@ export default class TestTable1 extends SimpleTable {
     Check.mustString(key);
   }
   async setData(data: TEST1) {
-    return this.add<TEST1>(data[this.key], data);
+    return this.add(data[this.key], data);
   }
   async delData(key: string) {
     this.verifyKey(key);
 
-    return this.del<TEST1>(key);
+    return this.del(key);
   }
   async getData(key: string) {
     this.verifyKey(key);
 
-    return this.get<TEST1 & { id: string }>(key);
+    return (await this.get(key)) as TEST1 & { id: string };
   }
   async getAllArrData() {
-    return this.getAllArr<TEST1 & { id: string }>();
+    return (await this.getAllArr()) as Array<TEST1 & { id: string }>;
   }
 }

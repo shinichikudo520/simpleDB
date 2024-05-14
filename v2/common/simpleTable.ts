@@ -5,14 +5,14 @@ import { SimpleDB, SimpleIndex, SimpleStore } from "./simpleDB";
 import { KEY_TYPE, callback, KEY_PROP_NAME, update } from "./type";
 import { forEach, forEachA } from "./util";
 
-export class SimpleTable {
+export class SimpleTable<T> {
   protected readonly db: SimpleDB;
   protected readonly store: SimpleStore;
   protected readonly key: KEY_PROP_NAME;
   protected readonly primaryKey: SimpleIndex;
   protected readonly indexs: { [indexName: string]: SimpleIndex };
   /** 内存中存储一份数据, 结构与 indexedDB 完全一致 */
-  protected cache: LocalKV | null;
+  protected cache: LocalKV<T> | null;
   /** 内存中提供存储 arrayBuffer 类型的数据, 最大限制的使用运行内存, 适用于存储大体量数据 */
   protected buffer: LocalBuffer | null;
 
@@ -39,7 +39,7 @@ export class SimpleTable {
     this.indexs = indexs;
 
     if (cachename) {
-      this.cache = new LocalKV(cachename);
+      this.cache = new LocalKV<T>("__LOCAL_KV_ROOT__", cachename);
     }
     if (buffername) {
       this.buffer = new LocalBuffer(buffername);
@@ -71,7 +71,7 @@ export class SimpleTable {
     return this.indexs[indexName];
   }
 
-  private async readwrite<T>(
+  private async readwrite(
     store: SimpleStore,
     tx: IDBTransaction,
     key: any,
@@ -88,26 +88,26 @@ export class SimpleTable {
     return false;
   }
 
-  async readwriteData<T>(key: string, callback: callback<T>): Promise<boolean> {
+  async readwriteData(key: string, callback: callback<T>): Promise<boolean> {
     const store = this.store;
     const tx = await this.db.transaction(store);
-    return this.readwrite<T>(store, tx, key, callback);
+    return this.readwrite(store, tx, key, callback);
   }
 
-  protected async get<T>(key: KEY_TYPE): Promise<T> {
+  protected async get(key: KEY_TYPE): Promise<T> {
     this.verify(key);
 
-    return this.getInMemory<T>(key) || (await this.getInDB<T>(key));
+    return this.getInMemory(key) || (await this.getInDB(key));
   }
 
-  private getInMemory<T>(key: KEY_TYPE): T | null {
+  private getInMemory(key: KEY_TYPE): T | null {
     this.verify(key);
 
     if (!this.cache || typeof key !== "string") return null;
     return this.cache.get(key);
   }
 
-  private async getInDB<T>(key: KEY_TYPE): Promise<T> {
+  private async getInDB(key: KEY_TYPE): Promise<T> {
     this.verify(key);
 
     const tx = await this.db.transaction(this.store, "readonly");
@@ -118,7 +118,7 @@ export class SimpleTable {
     }
   }
 
-  protected async getByIndexName<T>(
+  protected async getByIndexName(
     indexName: string,
     indexVal: string | Array<any>
   ): Promise<T | null> {
@@ -128,13 +128,13 @@ export class SimpleTable {
     return this.indexs[indexName].get(indexVal);
   }
 
-  protected async getLotsArr<T>(keys: Array<string>): Promise<Array<T>> {
+  protected async getLotsArr(keys: Array<string>): Promise<Array<T>> {
     this.verify(keys);
 
-    const datas: Array<T> = new Array<T>();
+    const datas = new Array();
     if (this.cache) {
       forEach(keys, (_, key) => {
-        const data = this.getInMemory<T>(key);
+        const data = this.getInMemory(key);
         data && datas.push(data);
       });
     } else {
@@ -149,13 +149,13 @@ export class SimpleTable {
     return datas;
   }
 
-  protected getAllArrBound<T>(
+  protected getAllArrBound(
     primaryKeyRange: [any, any, boolean, boolean]
   ): Promise<Array<T>> {
     return this.store.getAllBound(...primaryKeyRange);
   }
 
-  protected getAllArrBoundByIndexName<T>(
+  protected getAllArrBoundByIndexName(
     indexName: string,
     indexRange: [any, any, boolean, boolean]
   ): Promise<Array<T>> | null {
@@ -164,7 +164,7 @@ export class SimpleTable {
     if (!this.indexs[indexName]) return null;
     return this.indexs[indexName].getAllBound(...indexRange);
   }
-  protected getAllArrUBByIndexName<T>(
+  protected getAllArrUBByIndexName(
     indexName: string,
     range: [any, boolean]
   ): Promise<Array<T>> | null {
@@ -173,7 +173,7 @@ export class SimpleTable {
     return this.indexs[indexName].getAllUB(...range);
   }
 
-  protected getAllArrLBByIndexName<T>(
+  protected getAllArrLBByIndexName(
     indexName: string,
     range: [any, boolean]
   ): Promise<Array<T>> | null {
@@ -182,13 +182,13 @@ export class SimpleTable {
     return this.indexs[indexName].getAllLB(...range);
   }
 
-  protected getAllArrByIndexName<T>(
+  protected getAllArrByIndexName(
     indexName: string,
     indexVal: string | number
   ): Promise<Array<T>> | null {
     this.verify(indexName, indexVal);
 
-    const datas = this.getAllInMemory<T>();
+    const datas = this.getAllInMemory();
     if (datas) {
       const arr: Array<T> = [];
       forEach(datas, (_, data) => {
@@ -203,10 +203,10 @@ export class SimpleTable {
     }
   }
 
-  public async getAllPrimaryKeys<T>(
+  public async getAllPrimaryKeys(
     arr?: [any, any, boolean, boolean]
   ): Promise<IDBValidKey[]> {
-    let datas = this.getAllInMemory<T>();
+    let datas = this.getAllInMemory();
     if (datas) {
       const keys = Object.keys(datas);
       if (!arr) return keys;
@@ -226,7 +226,7 @@ export class SimpleTable {
     }
   }
 
-  protected async update<T>(
+  protected async update(
     key: string,
     updateProperty: update<T>,
     force = false
@@ -234,7 +234,7 @@ export class SimpleTable {
     this.verify(key);
 
     let newData: T | null = null;
-    const res = await this.readwriteData<T>(key, (data: T) => {
+    const res = await this.readwriteData(key, (data: T) => {
       if (!data && !force) return null;
       let ticket;
       if (data) {
@@ -253,31 +253,31 @@ export class SimpleTable {
     });
 
     if (res) {
-      this.updateInMemory(key, newData);
+      this.updateInMemory(key, newData as T);
     }
     return newData;
   }
 
-  protected async updateInLocal<T>(
+  protected async updateInLocal(
     key: string,
     updateProperty: update<T>
   ): Promise<T | null> {
     this.verify(key);
 
-    let data: T = await this.get<T>(key);
+    let data: T = await this.get(key);
     if (!data) return null;
 
     data = updateProperty(data);
-    return this.updateInDB<T>(key, data).then(
+    return this.updateInDB(key, data).then(
       () => {
-        this.updateInMemory<T>(key, data);
+        this.updateInMemory(key, data);
         return data;
       },
       () => null
     );
   }
 
-  private updateInMemory<T>(key: string, data: T): void {
+  private updateInMemory(key: string, data: T): void {
     this.verify(key, data);
 
     if (this.cache) {
@@ -285,13 +285,13 @@ export class SimpleTable {
     }
   }
 
-  private updateInDB<T>(key: string, data: T): Promise<any> {
+  private updateInDB(key: string, data: T): Promise<any> {
     this.verify(key, data);
 
     return this.store.put(key, data);
   }
 
-  protected async addLots<T>(
+  protected async addLots(
     datas: Array<T>,
     onsuccess?: (data: T) => void,
     onerror?: (data: { key: string; msg: string }) => void,
@@ -304,7 +304,7 @@ export class SimpleTable {
     await forEachA(datas, async (_, data) => {
       await store.put(data[this.key], data, tx).then(
         () => {
-          this.addInMemory<T>(data[this.key], data);
+          this.addInMemory(data[this.key], data);
           onsuccess && onsuccess(data);
         },
         (error) => {
@@ -314,7 +314,7 @@ export class SimpleTable {
     });
   }
 
-  protected async delLots<T>(
+  protected async delLots(
     keys: Array<string | number | Array<any>>,
     onsuccess?: (key: string | number | Array<any>) => void,
     onerror?: (data: {
@@ -330,7 +330,7 @@ export class SimpleTable {
     await forEachA(keys, async (_, key) => {
       await store.delete(key, tx).then(
         () => {
-          this.delInMemory<T>(key);
+          this.delInMemory(key);
           onsuccess && onsuccess(key);
         },
         (error) => {
@@ -340,19 +340,19 @@ export class SimpleTable {
     });
   }
 
-  protected async add<T>(key: KEY_TYPE, data: T): Promise<boolean> {
+  protected async add(key: KEY_TYPE, data: T): Promise<boolean> {
     this.verify(key, data);
 
-    return this.addInDB<T>(key, data).then(
+    return this.addInDB(key, data).then(
       () => {
-        this.addInMemory<T>(key, data);
+        this.addInMemory(key, data);
         return true;
       },
       () => false
     );
   }
 
-  private addInMemory<T>(key: KEY_TYPE, data: T): void {
+  private addInMemory(key: KEY_TYPE, data: T): void {
     this.verify(key, data);
 
     if (this.cache && typeof key === "string") {
@@ -360,25 +360,25 @@ export class SimpleTable {
     }
   }
 
-  private addInDB<T>(key: KEY_TYPE, data: T): Promise<any> {
+  private addInDB(key: KEY_TYPE, data: T): Promise<any> {
     this.verify(key, data);
 
     return this.store.put(key, data);
   }
 
-  protected del<T>(key: KEY_TYPE): Promise<boolean> {
+  protected del(key: KEY_TYPE): Promise<boolean> {
     this.verify(key);
 
-    return this.delInDB<T>(key).then(
+    return this.delInDB(key).then(
       () => {
-        this.delInMemory<T>(key);
+        this.delInMemory(key);
         return true;
       },
       () => false
     );
   }
 
-  private delInMemory<T>(key: KEY_TYPE): void {
+  private delInMemory(key: KEY_TYPE): void {
     this.verify(key);
 
     if (this.cache && typeof key === "string") {
@@ -386,17 +386,17 @@ export class SimpleTable {
     }
   }
 
-  private delInDB<T>(key: KEY_TYPE): Promise<any> {
+  private delInDB(key: KEY_TYPE): Promise<any> {
     this.verify(key);
 
     return this.store.delete(key);
   }
 
-  protected async getAllKV<T>(): Promise<{ [key: string]: T }> {
-    let datas = this.getAllInMemory<T>() as any;
+  protected async getAllKV(): Promise<{ [key: string]: T }> {
+    let datas = this.getAllInMemory() as any;
     if (!datas) {
       datas = {};
-      const arr = (await this.getAllInDB<T>()) || [];
+      const arr = (await this.getAllInDB()) || [];
       forEach(arr, (_, data) => {
         datas[data[this.key]] = data;
       });
@@ -404,21 +404,21 @@ export class SimpleTable {
     return datas || {};
   }
 
-  protected async getAllArr<T>(): Promise<Array<T>> {
-    const datas = this.getAllInMemory<T>();
+  protected async getAllArr(): Promise<Array<T>> {
+    const datas = this.getAllInMemory();
     if (datas) {
       return Object.values(datas);
     } else {
-      return await this.getAllInDB<T>();
+      return await this.getAllInDB();
     }
   }
 
-  private getAllInMemory<T>(): { [key: string]: T } | null {
+  private getAllInMemory(): { [key: string]: T } | null {
     if (!this.cache) return null;
     return this.cache.getAllData();
   }
 
-  private getAllInDB<T>(): Promise<Array<T>> {
+  private getAllInDB(): Promise<Array<T>> {
     return this.store.getAll();
   }
 
@@ -498,19 +498,19 @@ export class SimpleTable {
     }
   }
 
-  protected getInCache<T>(key: string): ArrayBuffer | null {
+  protected getInCache(key: string): ArrayBuffer | null {
     this.verify(key);
 
     if (!this.buffer || typeof key !== "string") return null;
     return this.buffer.get(key);
   }
 
-  protected getAllInCache<T>(): { [key: string]: ArrayBuffer } | null {
+  protected getAllInCache(): { [key: string]: ArrayBuffer } | null {
     if (!this.buffer) return null;
     return this.buffer.getAllData();
   }
 
-  protected setInCache<T>(key: string, data: ArrayBuffer): void {
+  protected setInCache(key: string, data: ArrayBuffer): void {
     this.verify(key, data);
 
     if (this.buffer) {
@@ -518,7 +518,7 @@ export class SimpleTable {
     }
   }
 
-  protected delInCache<T>(key: string): void {
+  protected delInCache(key: string): void {
     this.verify(key);
 
     if (this.buffer && typeof key === "string") {

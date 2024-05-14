@@ -4,7 +4,7 @@ import { SimpleTable } from "../common/simpleTable";
 import TestDB from "./initDB.v2";
 import { TEST } from "./type";
 
-export default class TestTable extends SimpleTable {
+export default class TestTable extends SimpleTable<TEST> {
   constructor(db: SimpleDB, private readonly testDB: TestDB) {
     const store = db.store("test");
     const primaryKey = store.getIndex("uuid");
@@ -21,19 +21,19 @@ export default class TestTable extends SimpleTable {
     Check.mustString(key);
   }
   async setData(data: TEST) {
-    return this.add<TEST>(data[this.key], data);
+    return this.add(data[this.key], data);
   }
   async delData(key: string) {
     this.verifyKey(key);
 
-    return this.del<TEST>(key);
+    return this.del(key);
   }
   async getData(key: string) {
     this.verifyKey(key);
 
-    return this.get<TEST>(key);
+    return this.get(key);
   }
   async getAllArrData() {
-    return this.getAllArr<TEST>();
+    return this.getAllArr();
   }
 }
