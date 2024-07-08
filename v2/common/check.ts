@@ -1,6 +1,6 @@
 export default class Check {
   static notNull<T>(v: T | number): T | number {
-    if (v || v === 0) {
+    if (v || v === 0 || v === false) {
       return v;
     } else {
       throw new Error(`invalid null value! ${v}`);
