@@ -45,11 +45,33 @@ export class SimpleTable<T> {
       this.buffer = new LocalBuffer(buffername);
     }
   }
-  /** 解析验证参数 */
-  private verify(...args) {
+  /** 浅层解析验证参数 */
+  private verify(...args: any) {
     for (const arg of args) {
-      if (arg !== 0 && !Check.notNull(arg)) {
-        throw new Error(`invalid data! ${arg}`);
+      if (!Check.notNull(arg)) {
+        throw new Error(`invalid data! ${args}`);
+      }
+    }
+  }
+
+  /** 深层解析验证参数 */
+  private verifyDeep(...args: any) {
+    for (const arg of args) {
+      if (Array.isArray(arg)) {
+        arg.forEach((i) => this.verifyDeep.call(this, i));
+      } else if (Object.prototype.toString.call(arg) === "[object Object]") {
+        const arr = Object.values(arg);
+        arr.forEach((i) => this.verifyDeep.call(this, i));
+      } else {
+        check(arg);
+      }
+    }
+
+    function check(v: any) {
+      if (v !== "" && !Check.notNull(v)) {
+        throw new Error(`invalid data! ${args}`);
+      } else {
+        return v;
       }
     }
   }
